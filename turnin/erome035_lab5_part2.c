@@ -1,4 +1,5 @@
-/*	Author: erome035
+
+ /*	Author: erome035
  *  Partner(s) Name: 
  *	Lab Section:
  *	Assignment: Lab #  Exercise #
@@ -7,99 +8,124 @@
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
+
 #include <avr/io.h>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
 
-enum SM1_STATES {START, INIT, POUND_UNLOCK, Y_UNLOCK, Y_RELEASE, LOCK} SM1_STATE;
-void Tick_Door() {
-	switch(SM1_STATE) {
-		case START:
-		SM1_STATE = INIT;
-		break;
-			
-		case INIT:
-		if ((PINA & 0x07) == 0x04) {
-			SM1_STATE = POUND_UNLOCK;
-		}
-		else if ((PINA & 0x87) == 0x80) {
-			SM1_STATE = Y_UNLOCK;
-		}
-		else {
-			SM1_STATE = INIT;
-		}
-		break;
-			
-		case POUND_UNLOCK:
-		if ((PINA & 0x07) == 0x04) {
-                        SM1_STATE = POUND_UNLOCK;
-                }
-                else {
-                        SM1_STATE = Y_UNLOCK;
-                }
-                break;
-			
-		case Y_UNLOCK:
-		if (((PINA & 0x07) == 0x02) && ((PORTB & 0x01) == 0x01)) {	
-			 SM1_STATE = LOCK;
-		}
-		else if ((PINA & 0x07) == 0x02) {
-                      SM1_STATE = Y_RELEASE;
-                }
-	 	else if (PINA == 0x00) {
-		      SM1_STATE = Y_UNLOCK;
-		}
-                else {
-                      SM1_STATE = INIT;
-                }
-                break;
-			
-		case Y_RELEASE:
-		if ((PINA & 0x07) == 0x02) {
-                        SM1_STATE = Y_RELEASE;
-                }
-                else {
-                        SM1_STATE = INIT;
-                }
-                break;
-			
-			
-		case LOCK:
-		if ((PINA & 0x87) == 0x80) {
-                         SM1_STATE = LOCK;
-                }
-                else if((PINA & 0x07) == 0x02) {
-                         SM1_STATE = LOCK;
-                }
-		else{
-		 	SM1_STATE = INIT;
-		}
-               break;
-	}
+enum SM1_STATES { SM1_SMStart, SM_INIT1, SM1_INIT2, SM1_ADD1, SM1_MINUS1, SM1_ADD, SM1_MINUS, SM1_RESET } SM1_STATE;
+
+void Tick_Reset() {	
+	
+	unsigned char ButtonAdd = PINA & 0x01; 
+	unsigned char ButtonMinus = PINA & 0x02; 
+	
 	
 	switch(SM1_STATE) {
-	case START:
-	PORTB = 0x00;
+		case SM1_SMStart:
+		SM1_STATE = SM_INIT1;
+		break;
+			
+		case SM_INIT1:
+		SM1_STATE = SM1_INIT2;
+		break;
+			
+		case SM1_INIT2:
+		if (ButtonAdd && ButtonMinus) { // reset
+               	 	SM1_STATE = SM1_RESET;
+            	}
+		else if (ButtonAdd && !ButtonMinus) { // go add
+			SM1_STATE = SM1_ADD;
+		}
+		else if (!ButtonAdd && ButtonMinus){ // go subtract 
+                	SM1_STATE = SM1_MINUS;
+            	}
+		else if (!ButtonAdd && !ButtonMinus){ // stay in same state
+			SM1_STATE = SM1_INIT2; 
+		}
+		break;
+			
+			
+		case SM1_RESET:
+		if (ButtonAdd && ButtonMinus){ // repeat reset
+			SM1_STATE = SM1_RESET;
+		}
+		else {
+			SM1_STATE = SM1_INIT2; // go back to initial
+		}
+		break;
+			
+			
+		case SM1_ADD1:
+		if (ButtonAdd && !ButtonMinus) { 
+                	SM1_STATE = SM1_ADD1;
+            	}
+            	else {
+                	SM1_STATE = SM1_INIT2; // go back to initial
+            	}
+            	break;
+			
+		case SM1_ADD:
+			SM1_STATE = SM1_ADD1;
+		break;
+		
+			
+		case SM1_MINUS1:
+		if (!ButtonAdd && ButtonMinus) {
+			SM1_STATE = SM1_MINUS1;
+            	}
+            	else {
+                	SM1_STATE = SM1_INIT2;
+            	}
+            	break;
+			
+		case SM1_MINUS:
+			SM1_STATE = SM1_MINUS1;
+		break;
+			
+		default:
+			SM1_STATE = SM1_SMStart;
+		break;
+	}
+	switch(SM1_STATE) {
+			
+	case SM1_SMStart:
+	PORTC = 0x07;
 	break;
 			
-	case INIT:
+	case SM_INIT1:
+	PORTC = 0x07;
 	break;
 			
-	case POUND_UNLOCK:
+	case SM1_INIT2:
 	break;
 			
-	case Y_UNLOCK:
+	case SM1_ADD1:
 	break;
 			
-	case Y_RELEASE:
-	PORTB = 0x01;
+	case SM1_MINUS1:
 	break;
 			
-	case LOCK:
-	PORTB = 0x00;
+	case SM1_ADD:
+	if (PORTC < 0x09) {
+                PORTC = PORTC + 1;
+	}
+        break;
+			
+	case SM1_MINUS:
+	if (PORTC > 0x00){ 
+                PORTC = PORTC - 1;
+	}
+        break;
+			
+	case SM1_RESET:
+	PORTC = 0x00;
 	break;
-
+			
+	default:
+	PORTC = 0x07;
+	break;
 	}
 }
 
@@ -111,7 +137,7 @@ int main(void) {
 	
     /* Insert your solution below */
     while (1) {
-	Tick_Door();
+	Tick_Reset();
     }
     return 1;
 }
