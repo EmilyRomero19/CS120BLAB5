@@ -117,6 +117,7 @@ void Tick_Reset(){
 			
 	 default:
 		SM1_STATE = SM1_SMStart;
+		break;
 		
         }
 	
