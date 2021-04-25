@@ -67,7 +67,7 @@ void Tick_Reset() {
                  break;
 			
 	case SM1_MINUS:	
-		SM1_STATE = MINUS1;
+		SM1_STATE = SM1_MINUS1;
 		break;	
 			
 	case SM1_RESET:
