@@ -17,6 +17,7 @@ enum SM1_STATES { SM1_SMStart, SM1_INIT1, SM1_T1, SM1_T2, SM1_T3, SM1_T4, SM1_RE
 unsigned char hold = 0;
 void Tick_Reset(){
 	
+	unsigned char button = 0x00;
 	button = ~PINA & 0x01; // button is connected to A0
 	
 	switch(SM1_STATE){
