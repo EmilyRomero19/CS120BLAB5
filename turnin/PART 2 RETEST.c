@@ -13,17 +13,28 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM1_STATES { SM1_SMStart, SM1_INIT1, SM1_ADD1, SM1_MINUS1, SM1_ADD, SM1_MINUS, SM1_RESET } SM1_STATE;
+enum SM1_STATES { SM1_SMStart, SM1_INIT1, SM1_T1, SM1_T2, SM1_T3, SM1_T4, SM1_RESET } SM1_STATE;
+unsigned char hold = 0;
 void Tick_Reset(){
 	
 	button = ~PINA & 0x01; // button is connected to A0
 	
 	switch(SM1_STATE){
+			
 	case SM1_SMStart:
 		SM1_STATE = SM1_INIT1;
 		break;
+			
+	case SM1_INIT1:
+		if(button == 0x01){
+			SM1_STATE = SM1_T2;
+			
+		}
+		
+			
+			
 
-}
+        }
 }
 
 int main(void) {
