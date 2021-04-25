@@ -14,108 +14,103 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM1_STATES { SM1_SMStart, SM_INIT1, SM1_INIT2, SM1_ADD1, SM1_MINUS1, SM1_ADD, SM1_MINUS, SM1_RESET } SM1_STATE;
+enum SM1_STATES { SM1_SMStart, SM1_INIT1, SM1_INIT2, SM1_ADD1, SM1_MINUS1, SM1_ADD, SM1_MINUS, SM1_RESET } SM1_STATE;
+
+//modify old code to be able to simulate on microcontroller 
 
 void Tick_Reset() {	
 	
-	unsigned char ButtonAdd = PINA & 0x01; 
-	unsigned char ButtonMinus = PINA & 0x02; 
-	
-	
-	switch(SM1_STATE) {
-		case SM1_SMStart:
-		SM1_STATE = SM_INIT1;
+	//unsigned char ButtonAdd = PINA & 0x01;  DONT NEED 
+	//unsigned char ButtonMinus = PINA & 0x02; DONT NEED 
+	switch(SM1_STATE){
+		
+	case SM1_SMStart:
+		SM1_STATE = SM1_INIT1;
 		break;
-			
-		case SM_INIT1:
+		
+	case SM1_INIT1:
 		SM1_STATE = SM1_INIT2;
 		break;
 			
-		case SM1_INIT2:
-		if (ButtonAdd && ButtonMinus) { // reset
-               	 	SM1_STATE = SM1_RESET;
-            	}
-		else if (ButtonAdd && !ButtonMinus) { // go add
-			SM1_STATE = SM1_ADD;
+	case SM1_INIT2: //MODIFY USING ~PINA for microcontroller 
+		if ((~PINA & 0x03) == 0x03) {
+                    SM1_STATE = SM1_RESET;
+                }
+		else if ((~PINA & 0x01) == 0x01) {
+		     SM1_STATE = SM1_ADD;
 		}
-		else if (!ButtonAdd && ButtonMinus){ // go subtract 
-                	SM1_STATE = SM1_MINUS;
-            	}
-		else if (!ButtonAdd && !ButtonMinus){ // stay in same state
-			SM1_STATE = SM1_INIT2; 
-		}
+		else if ((~PINA & 0x02) == 0x02) {
+                    SM1_STATE = SM1_MINUS;
+                }
 		break;
+	
+	case SM1_ADD1:
+		if ((~PINA & 0x03) == 0x01) {
+                      SM1_STATE = SM1_ADD1;
+                }
+                else {
+                     SM1_STATE = SM1_INIT2;
+                }
+                break;
 			
-			
-		case SM1_RESET:
-		if (ButtonAdd && ButtonMinus){ // repeat reset
-			SM1_STATE = SM1_RESET;
-		}
-		else {
-			SM1_STATE = SM1_INIT2; // go back to initial
-		}
+	case SM1_ADD:	
+		SM1_STATE = SM1_ADD1;
 		break;
+	
+	case SM1_MINUS1:		
+		 if ((~PINA & 0x03) == 0x02) {
+                     SM1_STATE = SM1_MINUS1;
+                 }
+                 else {
+                      SM1_STATE = SM1_INIT2;
+                 }
+                 break;
 			
+	case SM1_MINUS:	
+		SM1_STATE = MINUS1;
+		break;	
 			
-		case SM1_ADD1:
-		if (ButtonAdd && !ButtonMinus) { 
-                	SM1_STATE = SM1_ADD1;
-            	}
-            	else {
-                	SM1_STATE = SM1_INIT2; // go back to initial
-            	}
-            	break;
-			
-		case SM1_ADD:
-			SM1_STATE = SM1_ADD1;
-		break;
-		
-			
-		case SM1_MINUS1:
-		if (!ButtonAdd && ButtonMinus) {
-			SM1_STATE = SM1_MINUS1;
-            	}
-            	else {
-                	SM1_STATE = SM1_INIT2;
-            	}
-            	break;
-			
-		case SM1_MINUS:
-			SM1_STATE = SM1_MINUS1;
-		break;
-			
-		default:
-			SM1_STATE = SM1_SMStart;
-		break;
+	case SM1_RESET:
+		if ((~PINA & 0x03) == 0x03) {
+                      SM1_STATE = SM1_RESET;
+                }
+                else {
+                      SM1_STATE = SM1_INIT2;
+                }
+                break;
+	
+	default:
+	SM1_STATE = SM1_SMStart;
+	break;		
+					
 	}
 	switch(SM1_STATE) {
-			
 	case SM1_SMStart:
 	PORTC = 0x07;
 	break;
 			
-	case SM_INIT1:
+	case SM1_INIT1:
 	PORTC = 0x07;
 	break;
 			
 	case SM1_INIT2:
 	break;
 			
-	case SM1_ADD1:
+	case SM1_ADD1: // SWITCH FROM LAST TIME wrong output
 	break;
 			
-	case SM1_MINUS1:
+	case SM1_MINUS1: //SWITCH FROM LAST TIME
 	break;
 			
-	case SM1_ADD:
+	case SM1_ADD: //SWITCH FROM LAST TIME
 	if (PORTC < 0x09) {
-                PORTC = PORTC + 1;
+        PORTC = PORTC + 1;
 	}
         break;
 			
-	case SM1_MINUS:
-	if (PORTC > 0x00){ 
-                PORTC = PORTC - 1;
+	case SM1_MINUS://SWITCH FROM LAST TIME
+	if (PORTC > 0x00) { 
+        PORTC = PORTC - 1;
 	}
         break;
 			
@@ -126,9 +121,9 @@ void Tick_Reset() {
 	default:
 	PORTC = 0x07;
 	break;
-	}
+	}	
 }
-
+	
 int main(void) {
     /* Insert DDR and PORT initializations */
 
