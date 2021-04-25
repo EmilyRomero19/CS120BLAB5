@@ -136,7 +136,7 @@ void Tick_Reset(){
 	}
 	break;
 			
-	case SM1_T2:
+	case SM1_T3:
 	break;
 	
 	case SM1_T1:
