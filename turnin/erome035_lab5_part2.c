@@ -63,7 +63,7 @@ void Tick_Inc_Dec_Reset(){
 	
 	switch(SM1_STATE){
 			
-	case SM1_SMStart:
+	case SM1_Start:
 	PORTC = 0x07;
 	break;
 	
