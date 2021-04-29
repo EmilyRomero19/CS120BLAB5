@@ -58,7 +58,12 @@ void Tick_Inc_Dec_Reset(){
 	break;
 			
 	case SM1_Dec:
+	if(!button1 && button2){
+	SM1_STATE = SM1_Dec;
+	}
+	else{
 	SM1_STATE = SM1_Init;
+	}
 	break; 
 		
 	case SM1_Reset:
