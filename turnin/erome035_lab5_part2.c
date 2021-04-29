@@ -67,7 +67,7 @@ void Tick_Inc_Dec_Reset(){
 	break; 
 		
 	case SM1_Reset:
-	else if(button1 && button2){
+	if(button1 && button2){
 	SM1_STATE = SM1_Reset;
 	}
 	else{
