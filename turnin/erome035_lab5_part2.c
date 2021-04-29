@@ -56,7 +56,7 @@ void Tick_Inc_Dec_Reset(){
 	SM1_STATE = SM1_Init;
 	break;
 			
-	dafault:
+	default:
 	SM1_STATE = SM1_Start;
 	break;
 	}
@@ -87,7 +87,7 @@ void Tick_Inc_Dec_Reset(){
 	PORTC = 0x00;
 	break;
 			
-	dafault:
+	default:
 	PORTC = 0x07;
 	break;
 					
