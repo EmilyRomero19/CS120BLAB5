@@ -13,7 +13,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM1_STATES {SM1_Start, SM1_Init, SM1_Inc, SM1_Dec, SM1_Reset} SM1_STATE;
+enum SM1_STATES {SM1_Start, SM1_Begin, SM1_Init, SM1_Inc, SM1_Dec, SM1_Reset} SM1_STATE;
 
 void Tick_Inc_Dec_Reset(){
 	
@@ -26,8 +26,12 @@ void Tick_Inc_Dec_Reset(){
 	switch(SM1_STATE){
 	
 	case SM1_Start:
-	SM1_STATE = SM1_Init;
+	SM1_STATE = SM1_Begin;
 	break;
+	
+	case SM1_Begin:
+	SM1_STATE = SM1_Init;
+	break;		
 			
 	case SM1_Init:
 	if(button1 && !button2){
@@ -63,10 +67,13 @@ void Tick_Inc_Dec_Reset(){
 	
 	switch(SM1_STATE){
 			
-	case SM1_Start:
+	case SM1_Start: 
+	break;
+			
+	case SM1_Begin:
 	PORTC = 0x07;
 	break;
-	
+		
 	case SM1_Init:
 	PORTC = PORTC;
 	break;
