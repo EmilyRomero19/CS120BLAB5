@@ -13,148 +13,87 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM1_STATES { SM1_SMStart, SM1_INIT1, SM1_T1, SM1_T2, SM1_T3, SM1_T4, SM1_RESET } SM1_STATE;
-unsigned char hold = 0;
-void Tick_Reset(){
+enum SM1_STATES {SM1_Start, SM1_Init, SM1_Inc, SM1_Dec, SM1_Reset} SM1_STATE;
+
+void Tick_Inc_Dec_Reset(){
 	
-	unsigned char button = 0x00;
-	button = ~PINA & 0x01; // button is connected to A0
+	unsigned char button1 = 0x00;
+	unsigned char button2 = 0x00;
 	
-	switch(SM1_STATE){
-			
-	case SM1_SMStart:
-		SM1_STATE = SM1_INIT1;
-		break;
-			
-	case SM1_INIT1:
-		if(button == 0x01){
-			SM1_STATE = SM1_T2;
-			hold = 1;
-		}
-		else if(button == 0x02){
-			SM1_STATE = SM1_T4;
-			hold = 1;
-		}
-		else if(button == 0x03){
-			SM1_STATE = SM1_RESET;
-		}
-		else{
-			SM1_STATE = SM1_INIT1;
-		}
-		break;
-			
-	case SM1_T2:
-		if(button == 0x01){
-			SM1_STATE = SM1_T2;
-		}
-		else if(button == 0x02 || button == 0x03){
-			SM1_STATE = SM1_RESET;
-		}
-		else{
-			SM1_STATE = SM1_T3;
-		}
-		break;
-			
-	case SM1_T3:
-		if(button == 0x01){
-			SM1_STATE = SM1_T2;
-			hold = 1;
-		}
-		else if(button == 0x02){
-			SM1_STATE = SM1_T4;
-			hold = 1;
-		}
-		else if(button == 0x03){
-			SM1_STATE = SM1_RESET;
-		}
-		else{
-			SM1_STATE = SM1_T3;	
-		}
-		break;
-			
-	case SM1_T1:
-		if(button == 0x01){
-			SM1_STATE = SM1_T2;
-			hold = 1;
-		}
-		else if(button == 0x02){
-			SM1_STATE = SM1_T4;
-			hold = 1;
-		}
-		else if(button == 0x03){
-			SM1_STATE = SM1_RESET;
-		}
-		else{
-			SM1_STATE = SM1_T1;	
-		}
-		break;
-		
-	case SM1_T4:
-		if(button == 0x01 || button == 0x03){
-			SM1_STATE = SM1_RESET;
-		}
-		else if(button == 0x02){
-			SM1_STATE = SM1_T4;
-		}
-		else{
-			SM1_STATE = SM1_T1;	
-		}
-		break;
-	
-	case SM1_RESET:	
-		if(button == 0x01){
-			SM1_STATE = SM1_T2;
-			hold = 1;
-		}
-		else if(button == 0x02){
-			SM1_STATE = SM1_T4;
-			hold = 1;
-		}
-		else{
-			SM1_STATE = SM1_RESET;	
-		}
-		break;	
-			
-	 default:
-		SM1_STATE = SM1_SMStart;
-		break;
-		
-        }
+	button1 = ~PINA & 0x01; // button1 is connected to PA0
+	button2 = ~PINA & 0x02; // button2 is connected to PA1
 	
 	switch(SM1_STATE){
-			
-	case SM1_SMStart:
-	break;
 	
-	case SM1_INIT1:
-	PORTC = 0x07;
+	case SM1_Start:
+	SM1_STATE = SM1_Init;
 	break;
 			
-	case SM1_T2:
-	if (PINC < 9 && hold == 1){
-	PORTC = PORTC + 1;
-	hold = 0;
+	case SM1_Init:
+	if(button1 && !button2){
+	SM1_STATE = SM1_Inc;
+	}
+	else if(!button1 && button2){
+	SM1_STATE = SM1_Dec;
+	}
+	else if(button1 && button2){
+	SM1_STATE = SM1_Reset;	
+	}
+	else{
+	SM1_STATE = SM1_Init;
 	}
 	break;
 			
-	case SM1_T3:
+	case SM1_Inc:
+	SM1_STATE = SM1_Init; 
 	break;
-	
-	case SM1_T1:
-	break;
+			
+	case SM1_Dec:
+	SM1_STATE = SM1_Init;
+	break; 
 		
-	case SM1_T4:
-	if (PINC > 0 && hold == 1){
-	PORTC = PORTC - 1;
-	hold = 0;
-	}
+	case SM1_Reset:
+	SM1_STATE = SM1_Init;
 	break;
 			
 	dafault:
+	SM1_STATE = SM1_Start;
+	break;
+	}
+	
+	switch(SM1_STATE){
+			
+	case SM1_SMStart:
+	PORTC = 0x07;
+	break;
+	
+	case SM1_Init:
+	PORTC = PORTC;
 	break;
 			
+	case SM1_Inc:
+	if (PORTC < 0x09){
+	PORTC = PORTC + 1;
 	}
-}
+	break;
+				
+	case SM1_Dec:
+	if (PORTC > 0x00){
+	PORTC = PORTC - 1;
+	}
+	break;
+			
+	case SM1_Reset:
+	PORTC = 0x00;
+	break;
+			
+	dafault:
+	PORTC = 0x07;
+	break;
+					
+	}
+			
+}	
 
 int main(void) {
     /* Insert DDR and PORT initializations */
@@ -164,7 +103,7 @@ int main(void) {
 	
     /* Insert your solution below */
     while (1) {
-	Tick_Reset();
+	Tick_Inc_Dec_Reset();
     }
     return 1;
 }
